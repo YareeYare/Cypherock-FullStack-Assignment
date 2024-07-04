@@ -3,7 +3,7 @@ import cySyncLogo from '../assets//csync_logo.svg';
 import { useEffect } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/store';
+import { RootState, AppDispatch } from '../store/store';
 import { setStatus, fetchBalance, fetchTransactions, addSyncItem, clearSyncQueue } from '../store/walletSlice';
 
 
@@ -58,7 +58,7 @@ const ResyncButton = styled.button`
 `;
 
 const Header = () => {
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const status = useSelector((state: RootState) => state.wallet.status);
 	const syncQueue = useSelector((state: RootState) => state.wallet.syncQueue);
 	const wallets = useSelector((state: RootState) => state.wallet.wallets);
@@ -70,9 +70,9 @@ const Header = () => {
 			if (!item) continue;
 			try {
 				if (item.type === 'balance') {
-					await dispatch(fetchBalance(item?.address));
+					await dispatch(fetchBalance(item.address!));
 				} else if (item.type === 'transactions') {
-					await dispatch(fetchTransactions(item?.address));
+					await dispatch(fetchTransactions(item.address!));
 				}
 				await new Promise((resolve) => setTimeout(resolve, 200));
 			} catch (error) {

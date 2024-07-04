@@ -5,6 +5,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import * as bip32 from 'bip32';
 import * as bip39 from 'bip39';
 import * as ecc from 'tiny-secp256k1';
+import { RootState } from './store';
 
 const API_KEY = import.meta.env.VITE_BLOCKCYPHER_API_KEY
 const BASE_URL = `https://api.blockcypher.com/v1/btc/test3`;
@@ -19,7 +20,7 @@ interface Wallet {
 interface Transaction {
 	hash: string;
 	total: number;
-	confirmed: string; // Time
+	dateTime: string; // Time
 	walletName: string;
 	address: string;
 }
@@ -45,20 +46,21 @@ const initialState: WalletState = {
 	status: 'synced',
 };
 
-export const processSyncQueue = createAsyncThunk<void, void, { state: WalletState }>(
+export const processSyncQueue = createAsyncThunk<void, void, { state: RootState }>(
 	'wallets/processSyncQueue',
 	async (_, { getState, dispatch }) => {
 		const state = getState();
-		const queue = state.syncQueue;
+		const queue = state.wallet.syncQueue;
 
 		while (queue.length > 0) {
 			const item = queue.shift();
 			if (item) {
 				try {
 					if (item.type === 'balance') {
-						await dispatch(fetchBalance(item?.address));
+						await dispatch(fetchBalance(item.address!));
 					} else if (item.type === 'transactions') {
-						await dispatch(fetchTransactions(item?.address));
+
+						await dispatch(fetchTransactions(item.address!));
 					}
 					await new Promise((resolve) => setTimeout(resolve, 200)); // Delay of 0.2 seconds
 				} catch (error) {
@@ -90,11 +92,12 @@ interface Tx {
 	confirmed: string;
 }
 
-export const fetchTransactions: AsyncThunk<Transaction[], string, object> = createAsyncThunk(
+export const fetchTransactions: AsyncThunk<Transaction[], string, { state: RootState }> = createAsyncThunk(
 	'wallets/fetchTransactions',
 	async (address: string,  { getState }) => {
 		const state = await getState();
-		const wallet = state.wallet.wallets.find(wallet => wallet.address === address);
+		// @ts-expect-error state is unknown
+		const wallet = state.wallet.wallets.find((wallet: Wallet) => wallet.address === address);
 		if (!wallet) {
 			throw new Error(`Wallet not found for address: ${address}`);
 		}
@@ -123,7 +126,7 @@ interface ImportWalletArgs {
 	mnemonic: string;
 }
 
-export const importWallet: AsyncThunk<ImportWalletPayload, ImportWalletArgs, object> = createAsyncThunk(
+export const importWallet: AsyncThunk<ImportWalletPayload, ImportWalletArgs, { state: RootState }> = createAsyncThunk(
 	'wallets/importWallet',
 	async ({ id, name, mnemonic }: ImportWalletArgs, { getState, rejectWithValue }) => {
 		const seed = await bip39.mnemonicToSeed(mnemonic);
@@ -135,7 +138,8 @@ export const importWallet: AsyncThunk<ImportWalletPayload, ImportWalletArgs, obj
 		const { address } = bitcoin.payments.p2pkh({ pubkey: node.publicKey, network });
 
 		const state = await getState();
-		if (state.wallet.wallets.some(wallet => wallet.address === address)) {
+		// @ts-expect-error state is unknown
+		if (state.wallet.wallets.some((wallet: Wallet) => wallet.address === address)) {
 			return rejectWithValue({ message: 'Wallet already exists' });
 		}
 
@@ -174,7 +178,8 @@ const walletSlice = createSlice({
 			state.syncQueue.push({ address: action.payload.address, type: 'balance' });
 			state.syncQueue.push({ address: action.payload.address, type: 'transactions' });
 		});
-		builder.addCase(importWallet.rejected, (state, action) => {
+		builder.addCase(importWallet.rejected, (_, action) => {
+			console.error(action.error);
 			alert("Wallet already exists")
 		});
 		builder.addCase(fetchBalance.fulfilled, (state, action) => {

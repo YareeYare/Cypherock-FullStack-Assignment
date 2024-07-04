@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { importWallet, setStatus, processSyncQueue } from '../store/walletSlice';
 import WalletItem from '../components/WalletItem';
 import ImportWalletModal from '../components/ImportWalletModal';
-import { RootState } from '../store/store';
+import { AppDispatch, RootState } from '../store/store';
 
 const WalletListContainer = styled.div`
 	padding: 0px;
@@ -79,7 +79,7 @@ const TableContent = styled.div`
 
 const WalletList = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
-	const dispatch = useDispatch();
+	const dispatch = useDispatch<AppDispatch>();
 	const wallets = useSelector((state: RootState) => state.wallet.wallets);
 
 	const handleImport = async (name: string, mnemonic: string) => {
@@ -115,8 +115,8 @@ const WalletList = () => {
 					<ColumnName>Actions</ColumnName>
 				</TableHeader>
 				<TableContent>
-					{wallets?.map(wallet => (
-						<WalletItem key={wallet.id} wallet={wallet} />
+					{wallets?.map((wallet,index) => (
+						<WalletItem key={index} wallet={wallet} />
 					))}
 				</TableContent>
 			</Table>

@@ -80,7 +80,7 @@ const Status = styled.h3`
 interface TransactionItemProps {
 	transaction: {
 		hash?: string;
-		name: string;
+		walletName: string;
 		total: number;
 		dateTime: string;
 	};
@@ -104,7 +104,7 @@ const TransactionItem = ({ transaction }: TransactionItemProps) => {
 				</DoneAt>
 			</Coin>
 			<Wallet>
-				{transaction.name}
+				{transaction.walletName}
 			</Wallet>
 			<Amount>{(transaction.total).toFixed(4)} BTC</Amount>
 			<Result>

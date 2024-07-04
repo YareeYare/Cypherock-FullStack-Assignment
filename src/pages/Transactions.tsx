@@ -12,7 +12,7 @@ const TransactionsContainer = styled.div`
 `;
 
 const TransactionTitle = styled.h2`
-	font-size: 20px;
+	font-size: 2vw;
 	font-weight: 700;
 	color: #C78D4E;
 	margin-top: 14.071vh;
@@ -52,12 +52,10 @@ const TransactionList = () => {
 	const transactions = useSelector((state: RootState) => state.wallet.transactions);
 	const dummy_transaction = {
 		hash: '1',
-		name: 'wallet_name',
+		walletName: 'wallet_name',
 		total: Math.random()/100,
 		dateTime: '3/7/2024T2:39:23Z',
 	}
-
-	console.log( "transactions", transactions )
 
 	return (
 		<TransactionsContainer>
@@ -65,7 +63,7 @@ const TransactionList = () => {
 				Transactions
 			</TransactionTitle>
 			<TotalTransactions>
-				Total Transactions - {transactions.length}
+				Total Transactions - {transactions.length + 1} {/* +1 for dummy_transaction */}
 			</TotalTransactions>
 			<Table>
 				<TableHeader>
