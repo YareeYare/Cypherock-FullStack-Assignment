@@ -81,18 +81,17 @@ const Support = styled.div`
 
 const Navigation = () => {
 
-    const location = useLocation();
+		const location = useLocation();
 
-    const [isWalletPage, setIsWalletPage] = useState(false);
-    const [isTransactionPage, setIsTransactionPage] = useState(false);
+	const [isWalletPage, setIsWalletPage] = useState(false);
+	const [isTransactionPage, setIsTransactionPage] = useState(false);
 
-    useEffect(() => {
-        setIsWalletPage(location.pathname === "/");
-        setIsTransactionPage(location.pathname === "/transactions");
-    }, [location.pathname]);
+	useEffect(() => {
+		setIsWalletPage(location.pathname === "/");
+		setIsTransactionPage(location.pathname === "/transactions");
+	}, [location.pathname]);
 
 
-	// console.log(isWalletPage, isTransactionPage, location.pathname);
 	return (
 		<Nav>
 			<div style={{ paddingTop:'4.43vh' }}>

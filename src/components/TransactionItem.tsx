@@ -79,15 +79,19 @@ const Status = styled.h3`
 
 interface TransactionItemProps {
 	transaction: {
-		id?: string;
+		hash?: string;
 		name: string;
-		balance: number;
-		date: string;
-		time: string;
+		total: number;
+		dateTime: string;
 	};
 }
 
-const WalletItem = ({ transaction }: TransactionItemProps) => {
+const TransactionItem = ({ transaction }: TransactionItemProps) => {
+
+	//dateTime is in this format: "2014-03-29T01:29:19Z";
+	const [date, timeWithZone] = transaction.dateTime.split('T');
+	const time = timeWithZone.replace('Z', '');
+
 	return (
 		<TransactionsItemContainer>
 			<Coin>
@@ -95,14 +99,14 @@ const WalletItem = ({ transaction }: TransactionItemProps) => {
 					<img src={Bitcoin} alt='bitcoin' style={{ width: '1.211vw' }} />
 				</LogoBox>
 				<DoneAt>
-					<Date>{transaction.date}</Date>
-					<Time>{transaction.time}</Time>
+					<Date>{date}</Date>
+					<Time>{time}</Time>
 				</DoneAt>
 			</Coin>
 			<Wallet>
 				{transaction.name}
 			</Wallet>
-			<Amount>BTC {transaction.balance}</Amount>
+			<Amount>{(transaction.total).toFixed(4)} BTC</Amount>
 			<Result>
 				<img src={Arrow} alt='arrow' style={{ width: '1.211vw' }} />
 				RECEIVED
@@ -114,4 +118,4 @@ const WalletItem = ({ transaction }: TransactionItemProps) => {
 	);
 };
 
-export default WalletItem;
+export default TransactionItem;

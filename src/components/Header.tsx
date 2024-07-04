@@ -1,11 +1,11 @@
 import spinner from '../assets/spinner.svg';
-import logo_up from '../assets//csync_logo_up.svg';
 import cySyncLogo from '../assets//csync_logo.svg';
-
+import { useEffect } from 'react';
 import styled from 'styled-components';
 import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '../store/index';
-import { addSyncItem } from '../store/syncQueueSlice';
+import { RootState } from '../store/store';
+import { setStatus, fetchBalance, fetchTransactions, addSyncItem, clearSyncQueue } from '../store/walletSlice';
+
 
 const HeaderContainer = styled.header`
 	background-color: #0A1018;
@@ -34,7 +34,9 @@ const Name = styled.h1`
 	font-family: Avenir;
 	font-size: 1.5vw;
 	font-weight: 800;
-	text-align: center;
+	display: flex;
+	justify-content: center;
+	align-items: center;
 `;
 
 const SyncStatus = styled.h1`
@@ -57,29 +59,55 @@ const ResyncButton = styled.button`
 
 const Header = () => {
 	const dispatch = useDispatch();
-	const isSyncing = useSelector((state: RootState) => state.syncQueue.isSyncing);
+	const status = useSelector((state: RootState) => state.wallet.status);
+	const syncQueue = useSelector((state: RootState) => state.wallet.syncQueue);
 	const wallets = useSelector((state: RootState) => state.wallet.wallets);
+
+	const processQueue = async () => {
+		let localQueue = [...syncQueue]; // Create a local copy of the syncQueue
+		while (localQueue.length > 0) {
+			const item = localQueue.shift();
+			if (!item) continue;
+			try {
+				if (item.type === 'balance') {
+					await dispatch(fetchBalance(item?.address));
+				} else if (item.type === 'transactions') {
+					await dispatch(fetchTransactions(item?.address));
+				}
+				await new Promise((resolve) => setTimeout(resolve, 200));
+			} catch (error) {
+				console.error(`Failed to sync ${item.type} for ${item.address}:`, error);
+			}
+		}
+		dispatch(setStatus('synced'));
+		dispatch(clearSyncQueue()); // Clear the sync queue
+	};
+
+	useEffect(() => {
+		if (status === 'syncing') {
+			processQueue();
+		}
+	}, [status]);
 
 	const handleResync = () => {
 		wallets.forEach(wallet => {
-			dispatch(addSyncItem({ id: Date.now().toString(), type: 'balance', walletId: wallet.id }));
-			dispatch(addSyncItem({ id: (Date.now() + 1).toString(), type: 'history', walletId: wallet.id }));
+			dispatch(addSyncItem({ address: wallet.address, type: 'balance' }));
+			dispatch(addSyncItem({ address: wallet.address, type: 'transactions' }));
 		});
+		dispatch(setStatus('syncing'));
 	};
 
 	return (
 		<HeaderContainer>
 			<Logo_Name>
 				<Logo src={cySyncLogo} alt='logo' />
-					{/* <img src={logo_down} alt='logo_down' style={{ width: '1.89vw' }} />
-					<img src={logo_up} alt='logo_up' style={{ width: '1.89vw' }} /> */}
 				<Name>
 					cySync
 				</Name>
 			</Logo_Name>
 			<ResyncButton onClick={handleResync}>
-				<SyncStatus>  {/*isSyncing*/}
-					Synced
+				<SyncStatus>
+					{status!=='synced' ? 'Syncing' : 'Synced'}
 				</SyncStatus>
 				<img src={spinner} alt='spinner' style={{ marginLeft: '0.8vw', width: '1.108vw' }} />
 			</ResyncButton>

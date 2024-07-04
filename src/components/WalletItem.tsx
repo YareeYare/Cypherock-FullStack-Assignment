@@ -1,6 +1,8 @@
 import styled from 'styled-components';
 import Bitcoin from '../assets/bitcoin.svg';
 import Trash from '../assets/trash.svg';
+import { useDispatch } from 'react-redux';
+import { deleteWallet } from '../store/walletSlice';
 
 const WalletItemContainer = styled.div`
 	display: grid;
@@ -51,10 +53,18 @@ interface WalletItemProps {
 		id?: string;
 		name: string;
 		balance: number;
+		address?: string;
 	};
 }
 
 const WalletItem = ({ wallet }: WalletItemProps) => {
+	const dispatch = useDispatch();
+
+	const handleDelete = (address) => {
+		dispatch(deleteWallet(address));
+		console.log("deleted?")
+	};
+
 	return (
 		<WalletItemContainer>
 			<Coin>
@@ -66,7 +76,7 @@ const WalletItem = ({ wallet }: WalletItemProps) => {
 				</CoinName>
 			</Coin>
 			<Holdings>BTC {wallet.balance}</Holdings>
-			<Actions src={Trash} alt='trash'/>
+			<Actions src={Trash} alt='trash' onClick={() => handleDelete(wallet.address)}/>
 		</WalletItemContainer>
 	);
 };

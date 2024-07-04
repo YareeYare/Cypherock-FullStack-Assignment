@@ -1,4 +1,6 @@
 import styled from 'styled-components';
+import { useSelector } from 'react-redux';
+import { RootState } from '../store/store';
 import TransactionItem from '../components/TransactionItem';
 
 const TransactionsContainer = styled.div`
@@ -47,12 +49,15 @@ const TableContent = styled.div`
 `
 
 const TransactionList = () => {
-	const transaction = {
+	const transactions = useSelector((state: RootState) => state.wallet.transactions);
+	const dummy_transaction = {
+		hash: '1',
 		name: 'wallet_name',
-		balance: 0.1,
-		date: '3/7/2024',
-		time: '2:39:23 AM',
+		total: Math.random()/100,
+		dateTime: '3/7/2024T2:39:23Z',
 	}
+
+	console.log( "transactions", transactions )
 
 	return (
 		<TransactionsContainer>
@@ -60,7 +65,7 @@ const TransactionList = () => {
 				Transactions
 			</TransactionTitle>
 			<TotalTransactions>
-				Total Transactions - 03
+				Total Transactions - {transactions.length}
 			</TotalTransactions>
 			<Table>
 				<TableHeader>
@@ -71,12 +76,10 @@ const TransactionList = () => {
 					<ColumnName>Status</ColumnName>
 				</TableHeader>
 				<TableContent>
-					<TransactionItem transaction={transaction} />
-					<TransactionItem transaction={transaction} />
-					<TransactionItem transaction={transaction} />
-					<TransactionItem transaction={transaction} />
-					<TransactionItem transaction={transaction} />
-					<TransactionItem transaction={transaction} />
+					<TransactionItem transaction={dummy_transaction} />
+					{transactions.map(transaction => (
+						<TransactionItem key={transaction.hash} transaction={transaction} />
+					))}
 				</TableContent>
 			</Table>
 		</TransactionsContainer>

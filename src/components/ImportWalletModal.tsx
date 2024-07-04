@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Cross from '../assets/cross.svg';
+import * as bip39 from 'bip39';
 
 const ModalOverlay = styled.div`
 	position: fixed;
@@ -87,9 +88,12 @@ const ImportWalletModal = ({ isOpen, onClose, onImport }: ImportWalletModalProps
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		onImport(name, mnemonic);
+		const trimmedMnemonic = mnemonic.trim();
+		if( !bip39.validateMnemonic(trimmedMnemonic) ){ alert("Invalid mnemonic"); return; }
+		onImport(name, trimmedMnemonic);
 		setName('');
 		setMnemonic('');
+		onClose();
 	};
 
 	return (

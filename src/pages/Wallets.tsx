@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import styled from 'styled-components';
+import { useSelector, useDispatch } from 'react-redux';
+import { importWallet, setStatus, processSyncQueue } from '../store/walletSlice';
 import WalletItem from '../components/WalletItem';
 import ImportWalletModal from '../components/ImportWalletModal';
+import { RootState } from '../store/store';
 
 const WalletListContainer = styled.div`
 	padding: 0px;
@@ -38,6 +41,7 @@ const ImportLogo = styled.div`
 	display: flex;
 	justify-content: center;
 	align-items: center;
+
 	font-family: Avenir;
 	font-size: 1.2vw;
 `
@@ -75,16 +79,23 @@ const TableContent = styled.div`
 
 const WalletList = () => {
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const dispatch = useDispatch();
+	const wallets = useSelector((state: RootState) => state.wallet.wallets);
 
-	const handleImport = (name: string, mnemonic: string) => {
-		console.log("Pending...")
+	const handleImport = async (name: string, mnemonic: string) => {
+		const newWallet = {
+			id: Date.now().toString(),
+			name,
+			mnemonic,
+		};
+		dispatch(importWallet({ id: newWallet.id, name: newWallet.name, mnemonic: newWallet.mnemonic }))
+			.then(() => {
+				dispatch(setStatus('syncing'));
+			})
+			.then(() => {
+				dispatch(processSyncQueue())
+			})
 	};
-
-	const wallet = {
-		name: 'BWallet',
-		balance: 0.1
-	
-	}
 
 	return (
 		<WalletListContainer>
@@ -95,7 +106,7 @@ const WalletList = () => {
 				IMPORT WALLET
 			</ImportButton>
 			<TotalCoins>
-				Total Coins - 7
+				Total Coins - {wallets.length}
 			</TotalCoins>
 			<Table>
 				<TableHeader>
@@ -104,14 +115,12 @@ const WalletList = () => {
 					<ColumnName>Actions</ColumnName>
 				</TableHeader>
 				<TableContent>
-					<WalletItem wallet={wallet} />
-					<WalletItem wallet={wallet} />
-					<WalletItem wallet={wallet} />
-					<WalletItem wallet={wallet} />
-					<WalletItem wallet={wallet} />
+					{wallets?.map(wallet => (
+						<WalletItem key={wallet.id} wallet={wallet} />
+					))}
 				</TableContent>
 			</Table>
-
+			
 			<ImportWalletModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onImport={handleImport} />
 		</WalletListContainer>
 	);
